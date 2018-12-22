@@ -1,0 +1,4 @@
+#mvn package -Dmaven.test.skip=true  -Dspring.profiles.active=prod
+spring:
+  profiles:
+    active: dev

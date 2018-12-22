@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 12345
+    url: jdbc:mysql://101.132.103.204:3306/kitc?characterEncoding=utf-8&useSSL=false
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+  jpa:
+      show-sql: true
+      database: mysql
+  #jackson:
+      #default-property-inclusion: non_null
+server:
+  servlet:
+    context-path: /kit
