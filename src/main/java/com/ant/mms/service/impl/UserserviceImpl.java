@@ -7,15 +7,20 @@ import com.ant.mms.exception.KitcException;
 import com.ant.mms.pojo.User;
 import com.ant.mms.respository.UserRepository;
 import com.ant.mms.service.IUserService;
+import com.ant.mms.utils.MD5Util;
 import com.ant.mms.utils.R;
+import com.ant.mms.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -29,34 +34,37 @@ public class UserserviceImpl implements IUserService {
     private UserRepository repository;
 
     @Override
-    public R<User> login(String username, String password) {
+    public  UserVo  login(String username, String password) {
         int resultCount = repository.findUserByUsername( username ).size();
         if(resultCount == 0 ){
-            return R.errorMessage(ResultEnum.USER_IS_NOT_EXIST.getMessage());
+            throw new KitcException(ResultEnum.USER_IS_NOT_EXIST.getCode(),ResultEnum.USER_IS_NOT_EXIST.getMessage());
         }
-        String md5Password = DigestUtils.md5( password).toString();
+        String md5Password = MD5Util.MD5EncodeUtf8( password) ;
         User user  =  repository.findUserByUsernameAndPassword(username,md5Password);
         if(user == null){
-            return R.errorMessage(ResultEnum.User_PASSWORD_WRONG.getMessage());
+           throw new KitcException(ResultEnum.USER_PASSWORD_WRONG );
         }
         user.setPassword( StringUtils.EMPTY);
-        return R.success().put(Const.USERINFO,user);
+        UserVo userVo= new UserVo();
+        BeanUtils.copyProperties(user,userVo);
+        return  userVo ;
     }
 
     @Override
     @Transactional
     public R register(User user) {
         R validResponse = this.checkValid(user.getUsername(), Const.USERNAME);
-        if(!validResponse.getStatus().getCode().equals(ResultEnum.SUCCESS.getCode())){
+        if(!validResponse.isOk()){
             return validResponse;
         }
-        validResponse = this.checkValid(user.getEmail(),Const.EMAIL);
-        if(!validResponse.getStatus().getCode().equals(ResultEnum.SUCCESS.getCode())){
+        //注册时减少输入故没有邮箱检验
+      /*  validResponse = this.checkValid(user.getEmail(),Const.EMAIL);
+        if(!validResponse.isOk()){
             return validResponse;
-        }
+        }*/
         user.setRole(Const.Role.ROLE_CUSTOMER);
         //MD5加密
-        user.setPassword(DigestUtils.md5(user.getPassword()).toString());
+        user.setPassword(MD5Util.MD5EncodeUtf8(user.getPassword()) );
         user.setId(UUID.randomUUID().toString());
         User result =repository.save(user);
         log.info("用户注册：info={}",user.toString());
@@ -91,7 +99,6 @@ public class UserserviceImpl implements IUserService {
     @Override
     public User updateInformation(User user) {
         User result= repository.save(user);
-        //User u2= repository.findUserByUsername(user.getUsername()).get(0);
         if(result ==null){
             throw new KitcException(ResultEnum.UPDATE_FAIL);
         }
@@ -104,7 +111,15 @@ public class UserserviceImpl implements IUserService {
     }
 
     @Override
-    public R selectQuestion(String username) { return  this.checkValid(username,Const.USERNAME); }
+    public R selectQuestion(String username) {
+        R e=this.checkValid(username,Const.USERNAME);
+        if(e.isOk()){
+            User user = repository.findUserByUsername(username).get(0);
+            return R.success().put("question",user.getQuestion());
+        }else{
+            return R.errorMessage(ResultEnum.USER_INSUFFICIENT_PRIVILEGE.getMessage());
+        }
+    }
 
     @Override
     public R deleteById(String id) {

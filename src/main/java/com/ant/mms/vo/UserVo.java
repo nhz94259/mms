@@ -13,4 +13,6 @@ public class UserVo {
     private String username;
 
     private Integer role;
+
+    private String inviteCode;
 }

@@ -1,6 +1,7 @@
 package com.ant.mms.utils;
 
 import com.ant.mms.enums.ResultEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
@@ -38,7 +39,7 @@ public class R<T> implements Serializable{
         this.data=data;
     }
 
-    public Object getData(String key){
+    public Object getDataBykey(String key){
         return  this.data.get(key) ;
     }
 
@@ -46,6 +47,7 @@ public class R<T> implements Serializable{
     public static <T> R<T> success() {
         return new R<T>();
     }
+    @JsonIgnore
     public Boolean  isOk() {
         if (this.getStatus().getCode().equals(ResultEnum.SUCCESS.getCode()))
             return true;
@@ -92,7 +94,7 @@ public class R<T> implements Serializable{
     @Getter
     class Data<T> extends HashMap<String, Object> {
 
-        private static final long serialVersionUID = 1L;
+        //private static final long serialVersionUID = 1L;
 
         public Data() {}
 
@@ -115,7 +117,7 @@ public class R<T> implements Serializable{
             return this;
         }
         public  Object get(String key){
-            return  this.get(key);
+            return  data.get(key);
         }
     }
 

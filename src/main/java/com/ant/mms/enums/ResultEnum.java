@@ -26,7 +26,7 @@ public enum ResultEnum {
     USER_REGISTER_FAIL(305,"注册用户失败"),
     USER_USERNAME_IS_EXIST(306,"用户名已存在"),
     USER_MAIL_IS_EXIST(307,"邮箱已注册"),
-    User_PASSWORD_WRONG(308,"密码错误");
+    USER_PASSWORD_WRONG(308,"密码错误");
 
     private Integer code;
 

@@ -3,6 +3,7 @@ package com.ant.mms.service;
 
 import com.ant.mms.pojo.User;
 import com.ant.mms.utils.R;
+import com.ant.mms.vo.UserVo;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 
 public interface IUserService {
 
-    R<User> login(String username, String password);
+    UserVo login(String username, String password);
 
     R register(User user);
 

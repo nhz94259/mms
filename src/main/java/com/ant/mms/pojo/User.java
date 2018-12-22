@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -17,7 +18,9 @@ import java.util.Date;
 @Table
 @Data
 @DynamicUpdate
-public class User {
+public class User implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     private String Id;

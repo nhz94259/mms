@@ -10,8 +10,10 @@ import com.ant.mms.pojo.User;
 import com.ant.mms.service.IUserService;
 import com.ant.mms.utils.R;
 import com.ant.mms.vo.UserVo;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.boot.jaxb.SourceType;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -28,7 +30,6 @@ import javax.validation.Valid;
 @Slf4j
 public class UserController {
 
-
     @Autowired private IUserService iUserService;
 
     //普通用户登录
@@ -36,17 +37,21 @@ public class UserController {
     public R<User> login(@RequestParam("username") String username ,
                          @RequestParam("password") String password,
                          HttpSession session)throws KitcException{
-        R<User> response =iUserService.login(username,password);
-        if (response.isOk()){
-            session.setAttribute(Const.CURRENT_USER,response.getData());
+        UserVo user =iUserService.login(username,password);
+        if (user!=null){
+            session.setAttribute(Const.CURRENT_USER,user);
         }
-        return response;
+        return R.success().put("userinfo",user);
     }
     //用户登出
     @GetMapping(value="/logout")
     public R  logout(HttpSession session)throws KitcException{
+       Object user =   session.getAttribute(Const.CURRENT_USER);
+        if(user==null){
+            return R.successMessage("用户已登出，请勿重复操作");
+        }
         session.removeAttribute(Const.CURRENT_USER);
-        return R.success();
+        return R.errorMessage("用户已登出");
     }
 
 
@@ -65,14 +70,18 @@ public class UserController {
     }
 
     //获取用户信息
-    @PostMapping(value = "/get")
+    @GetMapping(value = "/get")
     public R<User> getUserInfo(HttpSession session)throws KitcException{
-        User user = (User)session.getAttribute(Const.CURRENT_USER);
+
+        UserVo user =  (UserVo) session.getAttribute(Const.CURRENT_USER);
+
         if(user!=null){
             return R.success().put(Const.CURRENT_USER,user);
         }
         return R.errorMessage(ResultEnum.USER_NEED_LOGIN.getMessage());
     }
+
+
     //更新信息
     @PostMapping(value = "/update")
     public R<User> updateUserInfo( HttpSession session,

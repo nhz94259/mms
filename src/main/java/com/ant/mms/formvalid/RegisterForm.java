@@ -14,12 +14,12 @@ public class RegisterForm {
     private final static  String StringOrNumbeRegexp = "^[A-Za-z][A-Za-z1-9_-]+$";
 
     /** 用戶名. */
-    @NotEmpty(message = "用户名不能为空")
-    @Pattern(regexp = StringOrNumbeRegexp,message = "非法字符请检查")
-    private String username;
+  /*  @NotEmpty(message = "用户名不能为空")
+    @Pattern(regexp = StringOrNumbeRegexp,message = "用户名只能为字符格式，非法字符请检查")
+    private String username;*/
     /** 密码. */
     @Size(min=6,max = 16,message =  "密码长度为6至16位")
-    @Pattern(regexp = StringOrNumbeRegexp,message = "非法字符请检查")
+    @Pattern(regexp = StringOrNumbeRegexp,message = "密码需为字母开头，可包含数字及_")
     private String password;
     /** 电话. */
     @Pattern( regexp=cellRegexp,message = "电话填写有误")
