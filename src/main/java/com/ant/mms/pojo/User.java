@@ -43,12 +43,8 @@ public class User implements Serializable{
     private String inviteCode;
     /** 上级id. */
     private String leaderId;
-
-//MYSQL数据库完成
-//    /** 创建时间. */
-//    private Date createTime;
-//    /** 更新时间. */
-//    private Date updateTime;
-
-
+    /** 总消费. */
+    private String totalAccount;
+    /** 总返利. */
+    private String totalRebate;
 }

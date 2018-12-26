@@ -4,6 +4,8 @@ package com.ant.mms.service.impl;
 import com.ant.mms.common.Const;
 import com.ant.mms.enums.ResultEnum;
 import com.ant.mms.exception.KitcException;
+import com.ant.mms.formvalid.RegisterForm;
+import com.ant.mms.formvalid.UserUpdateForm;
 import com.ant.mms.pojo.User;
 import com.ant.mms.respository.UserRepository;
 import com.ant.mms.service.IUserService;
@@ -11,8 +13,6 @@ import com.ant.mms.utils.MD5Util;
 import com.ant.mms.utils.R;
 import com.ant.mms.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.implementation.bytecode.Throw;
-import org.apache.commons.codec.digest.DigestUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -40,22 +41,31 @@ public class UserserviceImpl implements IUserService {
             throw new KitcException(ResultEnum.USER_IS_NOT_EXIST.getCode(),ResultEnum.USER_IS_NOT_EXIST.getMessage());
         }
         String md5Password = MD5Util.MD5EncodeUtf8( password) ;
-        User user  =  repository.findUserByUsernameAndPassword(username,md5Password);
-        if(user == null){
+        Optional<User> user  =  repository.findUserByUsernameAndPassword(username,md5Password);
+        if(!user.isPresent()){
            throw new KitcException(ResultEnum.USER_PASSWORD_WRONG );
         }
-        user.setPassword( StringUtils.EMPTY);
+        user.get().setPassword( StringUtils.EMPTY);
         UserVo userVo= new UserVo();
-        BeanUtils.copyProperties(user,userVo);
+        BeanUtils.copyProperties(user.get(),userVo);
         return  userVo ;
     }
 
     @Override
     @Transactional
-    public R register(User user) {
+    public R register(RegisterForm userform) {
+
+        User user = new User();
+        BeanUtils.copyProperties(userform,user);
         R validResponse = this.checkValid(user.getUsername(), Const.USERNAME);
         if(!validResponse.isOk()){
             return validResponse;
+        }
+        if (!userform.getInvitecode().equals("")&&userform.getInvitecode()==null){
+            Optional<User> inviteUser =repository.findByInviteCode(userform.getInvitecode());
+            user.setLeaderId(inviteUser.get().getId());
+        }else{
+            user.setInviteCode(Const.DEFAULT_INTITE_USERID);
         }
         //注册时减少输入故没有邮箱检验
       /*  validResponse = this.checkValid(user.getEmail(),Const.EMAIL);
@@ -72,6 +82,14 @@ public class UserserviceImpl implements IUserService {
             return R.errorMessage( ResultEnum.USER_REGISTER_FAIL.getMessage());
         }
         return R.successMessage(ResultEnum.USER_REGISTER_OK.getMessage());
+    }
+
+    @Override
+    public R update(User user) {
+        User resultStatus = repository.save(user);
+        if (resultStatus!=null)
+            return R.success();
+        return R.error();
     }
 
     @Override
@@ -108,6 +126,11 @@ public class UserserviceImpl implements IUserService {
     @Override
     public User getById(String userId) {
         return repository.findById(userId).get();
+    }
+
+    @Override
+    public User getByInviteCode(String code) {
+        return repository.findByInviteCode(code).get();
     }
 
     @Override

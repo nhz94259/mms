@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ControllerAdvice
 public class ExceptionHandle {
     //通用异常处理
-    @ExceptionHandler(value = KitcException.class)
-    @ResponseBody
-    public R handlerSellerException(KitcException e) {
-        return R.errorCodeMessage(e.getCode(),e.getMessage());
-    }
+//    @ExceptionHandler(value = KitcException.class)
+//    @ResponseBody
+//    public R handlerSellerException(KitcException e) {
+//
+//        return R.errorCodeMessage(e.getCode(),e.getMessage());
+//    }
 }

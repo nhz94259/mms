@@ -1,5 +1,6 @@
 package com.ant.mms.vo;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
@@ -15,4 +16,8 @@ public class UserVo {
     private Integer role;
 
     private String inviteCode;
+
+    private String totalAccount;//消费总金额
+
+    private String totalRebate;//消费总返利
 }

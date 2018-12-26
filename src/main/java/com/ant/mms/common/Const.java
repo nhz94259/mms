@@ -13,6 +13,7 @@ public class Const {
     public static final String USERNAME = "username";
     public static final String USERINFO ="userinfo";
     public static final String PASSWORD_SALT="ojbk";
+    public static final String DEFAULT_INTITE_USERID="AAAAAA";
     public interface Role{
         int ROLE_CUSTOMER = 0; //普通用户
         int ROLE_ADMIN = 1;//管理员

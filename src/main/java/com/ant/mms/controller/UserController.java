@@ -5,15 +5,16 @@ import com.ant.mms.common.Const;
 import com.ant.mms.enums.ResultEnum;
 import com.ant.mms.exception.KitcException;
 import com.ant.mms.formvalid.RegisterForm;
-import com.ant.mms.formvalid.UserForm;
+import com.ant.mms.formvalid.UserQuestAndAnswerForm;
+import com.ant.mms.formvalid.UserUpdateForm;
 import com.ant.mms.pojo.User;
 import com.ant.mms.service.IUserService;
+import com.ant.mms.service.PyramidService;
 import com.ant.mms.utils.R;
+import com.ant.mms.vo.PyramidUserListVo;
 import com.ant.mms.vo.UserVo;
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.boot.jaxb.SourceType;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * Created by wolf
@@ -30,13 +32,15 @@ import javax.validation.Valid;
 @Slf4j
 public class UserController {
 
+
     @Autowired private IUserService iUserService;
+    @Autowired private PyramidService ipyramidService;
 
     //普通用户登录
     @PostMapping(value = "/login")
     public R<User> login(@RequestParam("username") String username ,
                          @RequestParam("password") String password,
-                         HttpSession session)throws KitcException{
+                         HttpSession session) throws KitcException{
         UserVo user =iUserService.login(username,password);
         if (user!=null){
             session.setAttribute(Const.CURRENT_USER,user);
@@ -57,16 +61,16 @@ public class UserController {
 
 
     @PostMapping(value="/register")
-    public R  register(@Valid RegisterForm form,
+    public R  register(@Valid RegisterForm userform,
                 BindingResult bindingResult)throws KitcException{
         if (bindingResult.hasErrors()) {
-            log.error("【用戶注冊】参数不正确, userForm={}", form);
+            log.error("【用戶注冊】参数不正确, userForm={}", userform);
             throw new KitcException(ResultEnum.PARAMETER_ERROR.getCode(),
                     bindingResult.getFieldError().getDefaultMessage());
         }
-        User user = new User();
-        BeanUtils.copyProperties(form, user);
-        return iUserService.register(user);
+
+
+        return iUserService.register(userform);
     }
 
     //获取用户信息
@@ -85,27 +89,61 @@ public class UserController {
     //更新信息
     @PostMapping(value = "/update")
     public R<User> updateUserInfo( HttpSession session,
-                                   @Valid UserForm form,
+                                   @Valid UserUpdateForm form,
                                    BindingResult bindingResult  )throws KitcException  {
-        User currentUser = (User)session.getAttribute(Const.CURRENT_USER);
+
+        UserVo currentUser =  (UserVo) session.getAttribute(Const.CURRENT_USER);
+
         if(currentUser==null){
             R.errorMessage(ResultEnum.USER_NEED_LOGIN.getMessage());
         }
-        //TODO
+        if (bindingResult.hasErrors()) {
+            log.error("【用戶更新信息】参数不合规, userForm={}", form);
+            throw new KitcException(ResultEnum.PARAMETER_ERROR.getCode(),
+                    bindingResult.getFieldError().getDefaultMessage());
+        }
 
         User user =iUserService.getById(((User) session.getAttribute(Const.CURRENT_USER)).getId());
 
         BeanUtils.copyProperties(form,user);
+
         User result=iUserService.updateInformation(user);
         if(result!=null){
-            UserVo uv= new UserVo();
-            BeanUtils.copyProperties(user,uv);
-            session.setAttribute(Const.CURRENT_USER,uv);
+            BeanUtils.copyProperties(user,currentUser);
+            session.setAttribute(Const.CURRENT_USER,currentUser);
             return R.success();
         }
         return R.error();
     }
 
+    @GetMapping(value = "/updateqa")
+    public R updateQuestionAndQuestion(HttpSession session,
+                                       @Valid UserQuestAndAnswerForm qaform,
+                                       BindingResult bindingResult ) throws KitcException{
+        if(bindingResult.hasErrors()){
+            log.error("【用户安全问题不合规】：{}",qaform);
+            throw  new KitcException(ResultEnum.PARAMETER_ERROR.getCode(),
+                    bindingResult.getFieldError().getDefaultMessage());
+        }
 
+        UserVo currentUser = (UserVo)session.getAttribute(Const.CURRENT_USER);
+
+        if(currentUser!=null)
+            return R.errorMessage(ResultEnum.USER_NEED_LOGIN.getMessage());
+
+
+        User  user = iUserService.getById(currentUser.getId());
+        user.setQuestion(qaform.getQuestion());
+        user.setAnswer(qaform.getAnswer());
+        return iUserService.update(user);
+    }
+
+
+    //得到自己线下会员
+    @GetMapping(value = "/getgroup")
+    public R getPyramidList(@RequestParam (value ="userid") String userid) {
+        List<PyramidUserListVo> grouplist = ipyramidService.list(userid);
+        return R.success().put("list",grouplist);
+    }
 
 }

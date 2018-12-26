@@ -25,5 +25,5 @@ public class RegisterForm {
     @Pattern( regexp=cellRegexp,message = "电话填写有误")
     private String cellphone;
 
-    private String leaderId;
+    private String invitecode;
 }

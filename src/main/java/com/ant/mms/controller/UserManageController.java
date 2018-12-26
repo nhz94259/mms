@@ -28,16 +28,15 @@ public class UserManageController {
                    @RequestParam("password") String password,
                    HttpSession session)throws KitcException
     {
-         UserVo response = iUserService.login(username,password);
-        if(response!=null){
-           // User user = (User) response.getDataBykey(Const.CURRENT_USER);
-//            if(user.getRole() == Const.Role.ROLE_ADMIN){
-//                //说明登录的是管理员
-//                session.setAttribute(Const.CURRENT_USER,user);
-//                return R.success().put(Const.CURRENT_USER,user);
-//            }else{
-//                return R.errorMessage(ResultEnum.USER_INSUFFICIENT_PRIVILEGE.getMessage());
-//            }
+         UserVo userVo = iUserService.login(username,password);
+        if(userVo!=null){
+            if(userVo.getRole() == Const.Role.ROLE_ADMIN){
+                //说明登录的是管理员
+                session.setAttribute(Const.CURRENT_USER,userVo);
+                return R.success().put(Const.CURRENT_USER,userVo);
+            }else{
+                return R.errorMessage(ResultEnum.USER_INSUFFICIENT_PRIVILEGE.getMessage());
+            }
         }
         return R.success();
     }

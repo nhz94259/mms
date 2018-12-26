@@ -1,6 +1,7 @@
 package com.ant.mms.service;
 
 
+import com.ant.mms.formvalid.RegisterForm;
 import com.ant.mms.pojo.User;
 import com.ant.mms.utils.R;
 import com.ant.mms.vo.UserVo;
@@ -15,13 +16,17 @@ public interface IUserService {
 
     UserVo login(String username, String password);
 
-    R register(User user);
+    R register(RegisterForm userForm);
+
+    R update(User user);
 
     R checkValid(String str, String type);
 
     User updateInformation(User user);
 
     User getById(String userId);
+
+    User getByInviteCode(String code);
 
     R selectQuestion(String username);
 
